@@ -69,10 +69,14 @@ app.use(apiMetrics())
 | `responseSizeBuckets`    | `Array<Number>` | Buckets for response size in bytes | `[5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000]` |
 | `useUniqueHistogramName` | `Boolean` | Add to metrics names the project name as a prefix (from package.json) | `false` |
 | `metricsPrefix`          | `String`  | A custom metrics names prefix, the package will add underscore between your prefix to the metric name | |
+| `httpMetricsPrefix`      | `String`  | A custom prefix for HTTP metrics only, the package will add underscore between your prefix to the metric name | |
 | `excludeRoutes`          | `Array<String>` | Array of routes to exclude. Routes should be in your framework syntax | |
 | `includeQueryParams`     | `Boolean` | Indicate if to include query params in route, the query parameters will be sorted in order to eliminate the number of unique labels | `false` |
-| `metricAdditionalLabels`         | `Array<String>` | Indicating custom labels that can be included on each `http_*` metric. Use in conjunction with `getMetricAdditionalLabelValues`. |
-| `getMetricAdditionalLabelValues` | `Function`      | A function that can be use to generate the value of custom labels for each of the `http_*` metrics. When using koa, the function takes `ctx`, when using express, it takes `req, res` as arguments | |
+| `metricAdditionalLabels`           | `Array<String>` | Indicating custom metrics that can be included on each `http_*` metric. Use in conjunction with `getMetricAdditionalLabelValues`. |
+| `getMetricAdditionalLabelValues`   | `Function`      | A function that can be use to generate the value of custom labels for each of the `http_*` metrics. When using koa, the function takes `ctx`, when using express, it takes `req, res` as arguments | |
+| `excludeDefaultMetricLabels`       | `Boolean` or `Array<String>` | Excludes the metric labels added by default (`code`, `method`, `route`). If `true` is passed, it will exclude them all. An array of the labels that you need to exclude can also be passed | |
+| `useCountersForRequestSizeMetric`  | `Boolean` | Uses two counters for Request Size (`_sum` and `_count`) instead of Histogram  | `false` |
+| `useCountersForResponseSizeMetric` | `Boolean` | Uses two counters for Response Size (`_sum` and `_count`) instead of Histogram | `false` |
 
 ### Access the metrics
 
@@ -93,7 +97,6 @@ curl http[s]://<host>:[port]/metrics.json
 1. If you pass to the middleware the `metricsPath` option the path will be the one that you chose.
 
 2. If you are using express framework and no route was found for the request (e.g: 404 status code), the request will not be collected. that's because we'll risk memory leak since the route is not a pattern but a hardcoded string.
-
 
 ## Custom Metrics
 

@@ -651,4 +651,37 @@ describe('metrics-middleware', () => {
             Prometheus.register.clear();
         });
     });
+    describe('when excludeDefaultMetricLabels is passed', () => {
+        it('or it\'s undefined', () => {
+            middleware();
+            expect(Prometheus.register.getSingleMetric('http_request_size_bytes').labelNames).to.have.members(['method', 'route', 'code']);
+        });
+        it('and it\'s false', () => {
+            middleware({
+                excludeDefaultMetricLabels: false
+            });
+            expect(Prometheus.register.getSingleMetric('http_request_size_bytes').labelNames).to.have.members(['method', 'route', 'code']);
+        });
+        it('and it\'s true', () => {
+            middleware({
+                excludeDefaultMetricLabels: true
+            });
+            expect(Prometheus.register.getSingleMetric('http_request_size_bytes').labelNames).to.have.members([]);
+        });
+        it('and it\'s an array', () => {
+            middleware({
+                excludeDefaultMetricLabels: ['route', 'code']
+            });
+            expect(Prometheus.register.getSingleMetric('http_request_size_bytes').labelNames).to.have.members(['method']);
+        });
+        it('and it\'s other type', () => {
+            middleware({
+                excludeDefaultMetricLabels: 'invalid'
+            });
+            expect(Prometheus.register.getSingleMetric('http_request_size_bytes').labelNames).to.have.members(['method', 'route', 'code']);
+        });
+        afterEach(() => {
+            Prometheus.register.clear();
+        });
+    });
 });
