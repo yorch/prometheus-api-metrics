@@ -20,6 +20,7 @@ export interface ApiMetricsOpts {
   metricsPrefix?: string;
   excludeRoutes?:string[];
   includeQueryParams?: boolean;
+  excludeDefaultMetricLabels?: boolean | string[];
   metricAdditionalLabels?: string[];
   getMetricAdditionalLabelValues?: ((req: Request, res: Response) => Record<string, unknown>) | ((ctx: Context) => Record<string, unknown>)
 }

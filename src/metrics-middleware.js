@@ -20,6 +20,7 @@ module.exports = (appVersion, projectName, framework = 'express') => {
             metricsPrefix,
             excludeRoutes,
             includeQueryParams,
+            excludeDefaultMetricLabels,
             metricAdditionalLabels = [],
             getMetricAdditionalLabelValues
         } = options;
@@ -41,6 +42,13 @@ module.exports = (appVersion, projectName, framework = 'express') => {
 
         setupOptions.includeQueryParams = includeQueryParams;
         setupOptions.defaultMetricsInterval = defaultMetricsInterval;
+
+        setupOptions.excludeDefaultMetricLabels = utils.validateInput({
+            input: excludeDefaultMetricLabels,
+            isValidInputFn: (input) => utils.isArray(input) || utils.isBoolean(input),
+            defaultValue: [],
+            errorMessage: 'excludeDefaultMetricLabels should be an array or a boolean'
+        });
 
         setupOptions.metricAdditionalLabels = utils.validateInput({
             input: metricAdditionalLabels,
@@ -73,10 +81,14 @@ module.exports = (appVersion, projectName, framework = 'express') => {
 
         PrometheusRegisterAppVersion(appVersion, metricNames.app_version);
 
+        const defaultMetricLabels = ['method', 'route', 'code'];
+
         const metricLabels = [
-            'method',
-            'route',
-            'code',
+            ...excludeDefaultMetricLabels === true
+                ? []
+                : Array.isArray(excludeDefaultMetricLabels)
+                    ? defaultMetricLabels.filter((defaultLabel) => excludeDefaultMetricLabels.indexOf(defaultLabel) < 0)
+                    : defaultMetricLabels,
             ...metricAdditionalLabels
         ].filter(Boolean);
 

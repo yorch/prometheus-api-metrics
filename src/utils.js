@@ -14,6 +14,8 @@ const getMetricNames = (metricNames, useUniqueHistogramName, metricsPrefix, proj
 
 const isArray = (input) => Array.isArray(input);
 
+const isBoolean = (input) => typeof input === 'boolean';
+
 const isFunction = (input) => typeof input === 'function';
 
 const isString = (input) => typeof input === 'string';
@@ -34,6 +36,7 @@ const validateInput = ({ input, isValidInputFn, defaultValue, errorMessage }) =>
 
 module.exports.getMetricNames = getMetricNames;
 module.exports.isArray = isArray;
+module.exports.isBoolean = isBoolean;
 module.exports.isFunction = isFunction;
 module.exports.isString = isString;
 module.exports.shouldLogMetrics = shouldLogMetrics;
