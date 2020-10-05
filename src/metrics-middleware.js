@@ -22,7 +22,9 @@ module.exports = (appVersion, projectName, framework = 'express') => {
             includeQueryParams,
             excludeDefaultMetricLabels,
             metricAdditionalLabels = [],
-            getMetricAdditionalLabelValues
+            getMetricAdditionalLabelValues,
+            useCountersForRequestSizeMetric,
+            useCountersForResponseSizeMetric
         } = options;
         debug(`Init metrics middleware with options: ${JSON.stringify(options)}`);
 
@@ -64,12 +66,30 @@ module.exports = (appVersion, projectName, framework = 'express') => {
             errorMessage: 'getMetricAdditionalLabelValues should be a function'
         });
 
+        setupOptions.useCountersForRequestSizeMetric = utils.validateInput({
+            input: useCountersForRequestSizeMetric,
+            isValidInputFn: utils.isBoolean,
+            defaultValue: false,
+            errorMessage: 'useCountersForRequestSizeMetric should be a boolean'
+        });
+
+        setupOptions.useCountersForResponseSizeMetric = utils.validateInput({
+            input: useCountersForResponseSizeMetric,
+            isValidInputFn: utils.isBoolean,
+            defaultValue: false,
+            errorMessage: 'useCountersForResponseSizeMetric should be a boolean'
+        });
+
         const metricNames = utils.getMetricNames(
             {
                 http_request_duration_seconds: 'http_request_duration_seconds',
                 app_version: 'app_version',
                 http_request_size_bytes: 'http_request_size_bytes',
+                http_request_size_bytes_sum: 'http_request_size_bytes_sum',
+                http_request_size_bytes_count: 'http_request_size_bytes_count',
                 http_response_size_bytes: 'http_response_size_bytes',
+                http_response_size_bytes_sum: 'http_response_size_bytes_sum',
+                http_response_size_bytes_count: 'http_response_size_bytes_count',
                 defaultMetricsPrefix: ''
             },
             useUniqueHistogramName,
@@ -97,25 +117,54 @@ module.exports = (appVersion, projectName, framework = 'express') => {
         // Buckets for request size from 5 bytes to 10000 bytes
         const defaultSizeBytesBuckets = [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
 
+        // Request Size Metric
+        if (useCountersForRequestSizeMetric) {
+            setupOptions.requestSizeSum = Prometheus.register.getSingleMetric(metricNames.http_request_size_bytes_sum) || new Prometheus.Counter({
+                name: metricNames.http_request_size_bytes_sum,
+                help: 'Sum of the size of HTTP requests in bytes',
+                labelNames: metricLabels
+            });
+            setupOptions.requestSizeCount = Prometheus.register.getSingleMetric(metricNames.http_request_size_bytes_count) || new Prometheus.Counter({
+                name: metricNames.http_request_size_bytes_count,
+                help: 'Count of the size of HTTP requests',
+                labelNames: metricLabels
+            });
+        } else {
+            setupOptions.requestSizeHistogram = Prometheus.register.getSingleMetric(metricNames.http_request_size_bytes) || new Prometheus.Histogram({
+                name: metricNames.http_request_size_bytes,
+                help: 'Size of HTTP requests in bytes',
+                labelNames: metricLabels,
+                buckets: requestSizeBuckets || defaultSizeBytesBuckets
+            });
+        }
+
+        // Response Size Metric
+        if (useCountersForResponseSizeMetric) {
+            setupOptions.responseSizeSum = Prometheus.register.getSingleMetric(metricNames.http_response_size_bytes_sum) || new Prometheus.Counter({
+                name: metricNames.http_response_size_bytes_sum,
+                help: 'Sum of the size of HTTP responses in bytes',
+                labelNames: metricLabels
+            });
+            setupOptions.responseSizeCount = Prometheus.register.getSingleMetric(metricNames.http_response_size_bytes_count) || new Prometheus.Counter({
+                name: metricNames.http_response_size_bytes_count,
+                help: 'Count of the size of HTTP responses',
+                labelNames: metricLabels
+            });
+        } else {
+            setupOptions.responseSizeHistogram = Prometheus.register.getSingleMetric(metricNames.http_response_size_bytes) || new Prometheus.Histogram({
+                name: metricNames.http_response_size_bytes,
+                help: 'Size of HTTP response in bytes',
+                labelNames: metricLabels,
+                buckets: responseSizeBuckets || defaultSizeBytesBuckets
+            });
+        }
+
+        // Response Time Metric
         setupOptions.responseTimeHistogram = Prometheus.register.getSingleMetric(metricNames.http_request_duration_seconds) || new Prometheus.Histogram({
             name: metricNames.http_request_duration_seconds,
             help: 'Duration of HTTP requests in seconds',
             labelNames: metricLabels,
             buckets: durationBuckets || defaultDurationSecondsBuckets
-        });
-
-        setupOptions.requestSizeHistogram = Prometheus.register.getSingleMetric(metricNames.http_request_size_bytes) || new Prometheus.Histogram({
-            name: metricNames.http_request_size_bytes,
-            help: 'Size of HTTP requests in bytes',
-            labelNames: metricLabels,
-            buckets: requestSizeBuckets || defaultSizeBytesBuckets
-        });
-
-        setupOptions.responseSizeHistogram = Prometheus.register.getSingleMetric(metricNames.http_response_size_bytes) || new Prometheus.Histogram({
-            name: metricNames.http_response_size_bytes,
-            help: 'Size of HTTP response in bytes',
-            labelNames: metricLabels,
-            buckets: responseSizeBuckets || defaultSizeBytesBuckets
         });
 
         return frameworkMiddleware(framework);

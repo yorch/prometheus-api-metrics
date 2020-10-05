@@ -23,6 +23,8 @@ export interface ApiMetricsOpts {
   excludeDefaultMetricLabels?: boolean | string[];
   metricAdditionalLabels?: string[];
   getMetricAdditionalLabelValues?: ((req: Request, res: Response) => Record<string, unknown>) | ((ctx: Context) => Record<string, unknown>)
+  useCountersForResponseSizeMetric?: boolean;
+  useCountersForRequestSizeMetric?: boolean;
 }
 
 export interface CollectorOpts {
