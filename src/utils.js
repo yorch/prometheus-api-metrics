@@ -1,13 +1,15 @@
 'use strict';
 
-const getMetricNames = (metricNames, useUniqueHistogramName, metricsPrefix, projectName) => {
+const getMetricNames = ({ metricNames, useUniqueHistogramName, metricsPrefix, httpMetricsPrefix, projectName }) => {
     const prefix = useUniqueHistogramName === true ? projectName : metricsPrefix;
 
-    if (prefix) {
-        Object.keys(metricNames).forEach(key => {
+    Object.keys(metricNames).forEach(key => {
+        if (httpMetricsPrefix && key.startsWith('http_')) {
+            metricNames[key] = `${httpMetricsPrefix}_${metricNames[key]}`;
+        } else if (prefix) {
             metricNames[key] = `${prefix}_${metricNames[key]}`;
-        });
-    }
+        }
+    });
 
     return metricNames;
 };

@@ -69,6 +69,7 @@ app.use(apiMetrics())
 | `responseSizeBuckets`    | `Array<Number>` | Buckets for response size in bytes | `[5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000]` |
 | `useUniqueHistogramName` | `Boolean` | Add to metrics names the project name as a prefix (from package.json) | `false` |
 | `metricsPrefix`          | `String`  | A custom metrics names prefix, the package will add underscore between your prefix to the metric name | |
+| `httpMetricsPrefix`      | `String`  | A custom prefix for HTTP metrics only, the package will add underscore between your prefix to the metric name | |
 | `excludeRoutes`          | `Array<String>` | Array of routes to exclude. Routes should be in your framework syntax | |
 | `includeQueryParams`     | `Boolean` | Indicate if to include query params in route, the query parameters will be sorted in order to eliminate the number of unique labels | `false` |
 | `metricAdditionalLabels`           | `Array<String>` | Indicating custom metrics that can be included to each `http_*` metric. Use in conjunction with `getMetricAdditionalLabelValues`. |

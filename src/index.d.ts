@@ -18,6 +18,7 @@ export interface ApiMetricsOpts {
   responseSizeBuckets?: number[];
   useUniqueHistogramName?: boolean;
   metricsPrefix?: string;
+  httpMetricsPrefix?: string;
   excludeRoutes?:string[];
   includeQueryParams?: boolean;
   excludeDefaultMetricLabels?: boolean | string[];

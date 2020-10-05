@@ -18,6 +18,7 @@ module.exports = (appVersion, projectName, framework = 'express') => {
             responseSizeBuckets,
             useUniqueHistogramName,
             metricsPrefix,
+            httpMetricsPrefix,
             excludeRoutes,
             includeQueryParams,
             excludeDefaultMetricLabels,
@@ -27,6 +28,18 @@ module.exports = (appVersion, projectName, framework = 'express') => {
             useCountersForResponseSizeMetric
         } = options;
         debug(`Init metrics middleware with options: ${JSON.stringify(options)}`);
+
+        utils.validateInput({
+            input: metricsPrefix,
+            isValidInputFn: utils.isString,
+            errorMessage: 'metricsPrefix should be an string'
+        });
+
+        utils.validateInput({
+            input: httpMetricsPrefix,
+            isValidInputFn: utils.isString,
+            errorMessage: 'httpMetricsPrefix should be an string'
+        });
 
         setupOptions.metricsRoute = utils.validateInput({
             input: metricsPath,
@@ -80,10 +93,10 @@ module.exports = (appVersion, projectName, framework = 'express') => {
             errorMessage: 'useCountersForResponseSizeMetric should be a boolean'
         });
 
-        const metricNames = utils.getMetricNames(
-            {
-                http_request_duration_seconds: 'http_request_duration_seconds',
+        const metricNames = utils.getMetricNames({
+            metricNames: {
                 app_version: 'app_version',
+                http_request_duration_seconds: 'http_request_duration_seconds',
                 http_request_size_bytes: 'http_request_size_bytes',
                 http_request_size_bytes_sum: 'http_request_size_bytes_sum',
                 http_request_size_bytes_count: 'http_request_size_bytes_count',
@@ -94,8 +107,9 @@ module.exports = (appVersion, projectName, framework = 'express') => {
             },
             useUniqueHistogramName,
             metricsPrefix,
+            httpMetricsPrefix,
             projectName
-        );
+        });
 
         Prometheus.collectDefaultMetrics({ timeout: defaultMetricsInterval, prefix: `${metricNames.defaultMetricsPrefix}` });
 
